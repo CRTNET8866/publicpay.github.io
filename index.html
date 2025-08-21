@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全聚合支付</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e88e5;
+            --success: #4caf50;
+            --wechat: #07c160;
+            --alipay: #1677ff;
+            --xianyu: #ff9800;
+            --qqpay: #12b7f5;
+            --gray: #f5f7fa;
+            --text: #333;
+            --light-text: #666;
+            --border: #e0e6ed;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        
+        body {
+            background-color: #f8fafc;
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+        
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #e3f2fd;
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 15px;
+            margin-top: 15px;
+        }
+        
+        .security-badge i {
+            margin-right: 8px;
+            font-size: 18px;
+        }
+        
+        h1 {
+            color: var(--primary);
+            font-size: 26px;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            color: var(--light-text);
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .payment-container {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .payment-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+        }
+        
+        .payment-card.active {
+            box-shadow: 0 8px 24px rgba(30, 136, 229, 0.15);
+            border-color: var(--primary);
+        }
+        
+        .payment-header {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .payment-header:hover {
+            background: var(--gray);
+        }
+        
+        .payment-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .icon-wechat { background: var(--wechat); }
+        .icon-alipay { background: var(--alipay); }
+        .icon-xianyu { background: var(--xianyu); }
+        .icon-qqpay { background: var(--qqpay); }
+        
+        .payment-title {
+            font-size: 18px;
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .payment-arrow {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .payment-card.active .payment-arrow {
+            transform: rotate(180deg);
+        }
+        
+        .payment-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+        
+        .payment-card.active .payment-content {
+            max-height: 1000px;
+        }
+        
+        .payment-body {
+            padding: 0 20px 20px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .qr-container {
+            text-align: center;
+            padding: 25px 0;
+        }
+        
+        .qr-image {
+            width: 220px;
+            height: 220px;
+            margin: 0 auto;
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            object-fit: cover;
+        }
+        
+        .qr-title {
+            font-size: 16px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        
+        .instructions {
+            font-size: 14px;
+            color: var(--light-text);
+            max-width: 320px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+        
+        .product-list {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .product-item {
+            background: var(--gray);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .product-item:hover {
+            background: #e3f2fd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .product-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+        
+        .product-info {
+            flex: 1;
+        }
+        
+        .product-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .product-price {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .product-link {
+            background: var(--primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .product-link:hover {
+            background: #1565c0;
+            box-shadow: 0 4px 8px rgba(21, 101, 192, 0.3);
+        }
+        
+        .security-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            font-size: 14px;
+            color: var(--light-text);
+        }
+        
+        .security-features {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .security-feature {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .security-feature i {
+            color: var(--success);
+            margin-right: 8px;
+            font-size: 18px;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            .payment-header {
+                padding: 16px;
+            }
+            
+            .security-features {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="security-badge">
+            <i class="fas fa-lock"></i>
+            安全加密支付 · 平台担保交易
+        </div>
+        <h1>聚合支付平台</h1>
+        <p class="subtitle">选择您偏好的支付方式完成交易</p>
+    </div>
+    
+    <div class="payment-container">
+        <!-- 微信支付 -->
+        <div class="payment-card" id="wechatCard">
+            <div class="payment-header">
+                <div class="payment-icon icon-wechat">
+                    <i class="fab fa-weixin"></i>
+                </div>
+                <div class="payment-title">微信支付</div>
+                <div class="payment-arrow">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="payment-content">
+                <div class="payment-body">
+                    <div class="qr-container">
+                        <img src="https://example.com/path/to/wechat_qr.png" alt="微信支付二维码" class="qr-image">
+                        <div class="qr-title">微信扫码支付</div>
+                        <p class="instructions">
+                            请使用微信扫描二维码完成支付<br>
+                            支付成功后系统将自动确认订单
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 支付宝支付 -->
+        <div class="payment-card" id="alipayCard">
+            <div class="payment-header">
+                <div class="payment-icon icon-alipay">
+                    <i class="fab fa-alipay"></i>
+                </div>
+                <div class="payment-title">支付宝支付</div>
+                <div class="payment-arrow">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="payment-content">
+                <div class="payment-body">
+                    <div class="product-list">
+                        <!-- 支付宝商品链接 -->
+                        <div class="product-item">
+                            <div class="product-icon">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name">旗舰智能手机</div>
+                                <div class="product-price">¥ 3,299</div>
+                            </div>
+                            <a href="#" class="product-link">立即购买</a>
+                        </div>
+                        
+                        <div class="product-item">
+                            <div class="product-icon">
+                                <i class="fas fa-laptop"></i>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name">轻薄笔记本电脑</div>
+                                <div class="product-price">¥ 5,499</div>
+                            </div>
+                            <a href="#" class="product-link">立即购买</a>
+                        </div>
+                        
+                        <div class="product-item">
+                            <div class="product-icon">
+                                <i class="fas fa-headphones"></i>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name">无线降噪耳机</div>
+                                <div class="product-price">¥ 899</div>
+                            </div>
+                            <a href="#" class="product-link">立即购买</a>
+                        </div>
+                        
+                        <div class="product-item">
+                            <div class="product-icon">
+                                <i class="fas fa-tshirt"></i>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name">时尚休闲套装</div>
+                                <div class="product-price">¥ 399</div>
+                            </div>
+                            <a href="#" class="product-link">立即购买</a>
+                        </div>
+                        
+                        <div class="product-item">
+                            <div class="product-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name">专业学习套装</div>
+                                <div class="product-price">¥ 199</div>
+                            </div>
+                            <a href="#" class="product-link">立即购买</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 闲鱼交易 -->
+        <div class="payment-card" id="xianyuCard">
+            <div class="payment-header">
+                <div class="payment-icon icon-xianyu">
+                    <i class="fas fa-fish"></i>
+                </div>
+                <div class="payment-title">闲鱼交易</div>
+                <div class="payment-arrow">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="payment-content">
+                <div class="payment-body">
+                    <div class="product-list">
+                        <!-- 闲鱼商品链接 -->
+                        <div class="product-item">
+                            <div class="product-icon">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name">单反相机套装</div>
+                                <div class="product-price">¥ 2,800</div>
+                            </div>
+                            <a href="#" class="product-link">查看详情</a>
+                        </div>
+                        
+                        <div class="product-item">
+                            <div class="product-icon">
+                                <i class="fas fa-bicycle"></i>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name">山地自行车</div>
+                                <div class="product-price">¥ 650</div>
+                            </div>
+                            <a href="#" class="product-link">查看详情</a>
+                        </div>
+                        
+                        <div class="product-item">
+                            <div class="product-icon">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                            <div class="product-info">
+                                <div class="product-name">游戏主机套装</div>
+                                <div class="product-price">¥ 1,200</div>
+                            </div>
+                            <a href="#" class="product-link">查看详情</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- QQ支付 -->
+        <div class="payment-card" id="qqpayCard">
+            <div class="payment-header">
+                <div class="payment-icon icon-qqpay">
+                    <i class="fab fa-qq"></i>
+                </div>
+                <div class="payment-title">QQ支付</div>
+                <div class="payment-arrow">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="payment-content">
+                <div class="payment-body">
+                    <div class="qr-container">
+                        <img src="https://example.com/path/to/qq_qr.png" alt="QQ支付二维码" class="qr-image">
+                        <div class="qr-title">QQ扫码支付</div>
+                        <p class="instructions">
+                            请使用手机QQ扫描二维码完成支付<br>
+                            支付成功后系统将自动确认订单
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="security-footer">
+        <div class="security-features">
+            <div class="security-feature">
+                <i class="fas fa-shield-alt"></i>
+                SSL加密通信
+            </div>
+            <div class="security-feature">
+                <i class="fas fa-user-shield"></i>
+                实名认证保障
+            </div>
+            <div class="security-feature">
+                <i class="fas fa-lock"></i>
+                资金安全监管
+            </div>
+        </div>
+        <p>© 2025 安全聚合支付平台 | 全程担保交易 | 隐私政策</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 支付卡片切换功能
+            const paymentCards = document.querySelectorAll('.payment-card');
+            
+            paymentCards.forEach(card => {
+                const header = card.querySelector('.payment-header');
+                
+                header.addEventListener('click', () => {
+                    const isActive = card.classList.contains('active');
+                    
+                    // 关闭所有卡片
+                    paymentCards.forEach(c => {
+                        c.classList.remove('active');
+                    });
+                    
+                    // 打开当前卡片
+                    if (!isActive) {
+                        card.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
